@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Instalação: Entware & htop - WD My Cloud</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <span class="wd-blue">WD</span> My Cloud <span class="model-name">EX2 Ultra</span>
+            </div>
+            <div class="version">Tutorial Shell - OS 5</div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="intro">
+            <h1>Instalação do htop via Entware</h1>
+            <p>Este guia detalha o processo de instalação do gerenciador de pacotes <strong>Entware</strong> e da ferramenta de monitoramento <strong>htop</strong> no WD My Cloud EX2 Ultra (Arquitetura ARMv7).</p>
+        </section>
+
+        <div class="alert warning">
+            <strong>Atenção:</strong> O sistema de arquivos raiz do NAS é volátil. Siga os passos de persistência para não perder a instalação ao reiniciar.
+        </div>
+
+        <article class="step-card">
+            <div class="step-number">01</div>
+            <div class="step-content">
+                <h3>Preparar Armazenamento Persistente</h3>
+                <p>Como a raiz (/) é resetada no boot, instalaremos tudo no HD principal (sda2).</p>
+                <div class="code-block">
+                    <code>mkdir -p /mnt/HD/HD_a2/entware</code>
+                    <code>rm -rf /opt</code>
+                    <code>ln -sf /mnt/HD/HD_a2/entware /opt</code>
+                </div>
+            </div>
+        </article>
+
+        <article class="step-card">
+            <div class="step-number">02</div>
+            <div class="step-content">
+                <h3>Executar o Instalador Entware</h3>
+                <p>Baixe e execute o script de instalação para a arquitetura ARMv7 (Armada 385).</p>
+                <div class="code-block">
+                    <code>wget -O - http://bin.entware.net/armv7sf-k3.2/installer/generic.sh | sh</code>
+                </div>
+            </div>
+        </article>
+
+        <article class="step-card">
+            <div class="step-number">03</div>
+            <div class="step-content">
+                <h3>Instalar o htop</h3>
+                <p>Atualize a lista de repositórios e instale o pacote desejado.</p>
+                <div class="code-block">
+                    <code>/opt/bin/opkg update</code>
+                    <code>/opt/bin/opkg install htop</code>
+                </div>
+            </div>
+        </article>
+
+        <article class="step-card highlight">
+            <div class="step-number">04</div>
+            <div class="step-content">
+                <h3>Dica de Ouro: Persistência (Pós-Reboot)</h3>
+                <p>Sempre que o NAS reiniciar, o link <code>/opt</code> sumirá. Para restaurar o acesso rápido sem reinstalar tudo, execute este comando único:</p>
+                <div class="code-block">
+                    <code>ln -sf /mnt/HD/HD_a2/entware /opt && export PATH=$PATH:/opt/bin:/opt/sbin</code>
+                </div>
+                <p class="tip"><strong>Dica:</strong> Salve este comando em um bloco de notas no seu PC para rodar via SSH sempre que reiniciar o NAS.</p>
+            </div>
+        </article>
+
+        <section class="usage">
+            <h2>Como iniciar o monitoramento</h2>
+            <p>Após a instalação, basta digitar o comando abaixo no shell:</p>
+            <div class="terminal-box">
+                htop
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            Documentação gerada para o usuário <strong>Michel</strong> - WD My Cloud EX2 Ultra Shell Guide.
+        </div>
+    </footer>
+</body>
+</html>
