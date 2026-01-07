@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial SSH Persistente - WD MyCloud</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <span class="logo">
+                <span class="wd-blue">Western Digital</span> 
+                <span class="model-name">MyCloud EX2 Ultra</span>
+            </span>
+            <span class="version">Tutorial v1.0 • Jan 2026</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>SSH Persistente para Proxmox (PVE)</h1>
+        <p style="color: var(--text-muted);">Aprenda a configurar chaves SSH que sobrevivem ao reboot no WD MyCloud EX2 Ultra.</p>
+
+        <!-- PASSO 1 -->
+        <div class="step-card highlight-blue">
+            <div class="step-number">01</div>
+            <div class="step-content">
+                <h3>No Proxmox (PVE)</h3>
+                <p>Gere a chave e envie para o NAS pela primeira vez para garantir o acesso inicial.</p>
+                <div class="code-block">
+                    <code>ssh-keygen -t ed25519</code>
+                    <code>ssh-copy-id sshd@192.168.0.10</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO 2 -->
+        <div class="step-card highlight">
+            <div class="step-number">02</div>
+            <div class="step-content">
+                <h3>No NAS: Backup da Chave</h3>
+                <p>Como a pasta root é limpa no boot, salvamos a chave no volume de dados do HD.</p>
+                <div class="code-block">
+                    <code>mkdir -p /mnt/HD/HD_a2/.ssh_backup/</code>
+                    <code>cp ~/.ssh/authorized_keys /mnt/HD/HD_a2/.ssh_backup/</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO 3 -->
+        <div class="step-card highlight-blue">
+            <div class="step-number">03</div>
+            <div class="step-content">
+                <h3>Criando o Script de Restauração</h3>
+                <p>Este script irá repor a chave na memória RAM toda vez que o sistema iniciar.</p>
+                <div class="code-block">
+                    <code>nano /mnt/HD/HD_a2/.ssh_backup/restore_ssh.sh</code>
+                </div>
+                <p>Conteúdo do arquivo <strong>restore_ssh.sh</strong>:</p>
+                <div class="code-block" style="color: #dcdde1; background: #2d3436;">
+                    <pre style="margin:0;">
+#!/bin/sh
+# 1. Define o caminho do root (no seu caso /home/root)
+ROOT_HOME=$(eval echo "~root")
+
+# 2. Recria a pasta .ssh na RAM e define permissões
+mkdir -p $ROOT_HOME/.ssh
+chmod 700 $ROOT_HOME/.ssh
+
+# 3. Copia a chave do HD para a RAM
+cp /mnt/HD/HD_a2/.ssh_backup/authorized_keys $ROOT_HOME/.ssh/
+chmod 600 $ROOT_HOME/.ssh/authorized_keys
+</pre>
+                </div>
+                <div class="code-block" style="margin-top:10px;">
+                    <code>chmod +x /mnt/HD/HD_a2/.ssh_backup/restore_ssh.sh</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSO 4 -->
+        <div class="step-card highlight">
+            <div class="step-number">04</div>
+            <div class="step-content">
+                <h3>Ativando a Persistência</h3>
+                <p>Linkamos o script ao sistema de inicialização do Entware para execução automática.</p>
+                <div class="code-block">
+                    <code>ln -s /mnt/HD/HD_a2/.ssh_backup/restore_ssh.sh /opt/etc/init.d/S99restore_ssh</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="terminal-box">
+            CONEXÃO ESTABELECIDA!<br>
+            <span style="font-size: 0.9rem; opacity: 0.8;">ssh sshd@192.168.0.10 -> Login direto OK</span>
+        </div>
+
+        <footer>
+            Desenvolvido para automação Proxmox-NAS • 2026<br>
+            Nota: Certifique-se de que o Entware esteja instalado para o Passo 4.
+        </footer>
+    </div>
+
+</body>
+</html>
