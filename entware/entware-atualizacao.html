@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>WD My Cloud - Entware Persistente v3.0</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <div class="logo"><span class="wd-blue">WD</span> My Cloud <span class="model">EX2 Ultra</span></div>
+            <div class="version">Tutorial v3.0 - Persistência Garantida</div>
+        </div>
+    </header>
+    <main class="container">
+        <h1>Correção de Persistência (Mount Bind)</h1>
+        <p>No OS 5, links simbólicos no <code>/opt</code> podem falhar. A solução definitiva é montar a partição do HD diretamente sobre o ponto de montagem.</p>
+
+        <article class="step-card highlight">
+            <div class="step-number">!</div>
+            <div class="step-content">
+                <h3>Ajuste no init.sh do Transmission</h3>
+                <p>Use <code>mount --bind</code> em vez de <code>ln -s</code>. Isso força o sistema a tratar a pasta do HD como se fosse a pasta do sistema.</p>
+                <div class="code-block">
+                    <code>sleep 15</code>
+                    <code>umount /opt</code>
+                    <code>rm -rf /opt && mkdir /opt</code>
+                    <code>mount --bind /mnt/HD/HD_a2/entware /opt</code>
+                </div>
+            </div>
+        </article>
+
+        <article class="step-card">
+            <div class="step-number">PATH</div>
+            <div class="step-content">
+                <h3>Auto-Carregamento de Comandos</h3>
+                <p>O script agora injeta automaticamente o caminho no <code>/etc/profile</code> em cada boot.</p>
+                <div class="code-block">
+                    <code>echo 'export PATH=$PATH:/opt/bin:/opt/sbin' >> /etc/profile</code>
+                </div>
+            </div>
+        </article>
+    </main>
+</body>
+</html>
