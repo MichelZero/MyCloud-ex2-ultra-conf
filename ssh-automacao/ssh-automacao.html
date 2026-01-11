@@ -101,7 +101,7 @@ chmod 600 $ROOT_HOME/.ssh/authorized_keys</pre>
                 </div>
                 <p>Adicione esta linha ao final do arquivo:</p>
                 <div class="code-block" style="color: #f1f3f5; border: 1px dashed var(--success-green);">
-                    <code>alias desligar-nas='ssh sshd@192.168.0.10 "sh /opt/wd/sbin/send_pending_shutdown.sh -s 0"'</code>
+                    <code>alias desligar-nas='ssh sshd@192.168.0.10 "/usr/local/modules/script/shutdown.sh"'</code>
                 </div>
                 <div class="code-block" style="margin-top:10px;">
                     <code>source ~/.bashrc</code>
