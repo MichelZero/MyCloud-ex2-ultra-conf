@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutorial SSH Persistente - WD MyCloud</title>
+    <title>Tutorial SSH Persistente - WD MyCloud & Proxmox</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -12,22 +12,22 @@
         <div class="container">
             <span class="logo">
                 <span class="wd-blue">Western Digital</span> 
-                <span class="model-name">MyCloud EX2 Ultra</span>
+                <span class="model-name">MyCloud EX2 Ultra | OS 5</span>
             </span>
-            <span class="version">Tutorial v1.0 • Jan 2026</span>
+            <span class="version">Tutorial Atualizado • Jan 2026</span>
         </div>
     </nav>
 
     <div class="container">
-        <h1>SSH Persistente para Proxmox (PVE)</h1>
-        <p style="color: var(--text-muted);">Aprenda a configurar chaves SSH que sobrevivem ao reboot no WD MyCloud EX2 Ultra.</p>
+        <h1>SSH Persistente e Automação de Desligamento</h1>
+        <p style="color: var(--text-muted);">Configuração de chaves persistentes no NAS e criação de atalhos inteligentes no Proxmox PVE-01.</p>
 
         <!-- PASSO 1 -->
         <div class="step-card highlight-blue">
             <div class="step-number">01</div>
             <div class="step-content">
-                <h3>No Proxmox (PVE)</h3>
-                <p>Gere a chave e envie para o NAS pela primeira vez para garantir o acesso inicial.</p>
+                <h3>No Proxmox (PVE-01)</h3>
+                <p>Gere a chave criptográfica e realize o primeiro envio para o NAS.</p>
                 <div class="code-block">
                     <code>ssh-keygen -t ed25519</code>
                     <code>ssh-copy-id sshd@192.168.0.10</code>
@@ -40,7 +40,7 @@
             <div class="step-number">02</div>
             <div class="step-content">
                 <h3>No NAS: Backup da Chave</h3>
-                <p>Como a pasta root é limpa no boot, salvamos a chave no volume de dados do HD.</p>
+                <p>Criamos um diretório no volume de dados (disco físico) para armazenar a chave permanentemente.</p>
                 <div class="code-block">
                     <code>mkdir -p /mnt/HD/HD_a2/.ssh_backup/</code>
                     <code>cp ~/.ssh/authorized_keys /mnt/HD/HD_a2/.ssh_backup/</code>
@@ -52,26 +52,25 @@
         <div class="step-card highlight-blue">
             <div class="step-number">03</div>
             <div class="step-content">
-                <h3>Criando o Script de Restauração</h3>
-                <p>Este script irá repor a chave na memória RAM toda vez que o sistema iniciar.</p>
+                <h3>Script de Restauração Automatizada</h3>
+                <p>Este script garante que a chave seja reinjetada na RAM após cada reinicialização do NAS.</p>
                 <div class="code-block">
                     <code>nano /mnt/HD/HD_a2/.ssh_backup/restore_ssh.sh</code>
                 </div>
-                <p>Conteúdo do arquivo <strong>restore_ssh.sh</strong>:</p>
+                <p>Conteúdo atualizado do arquivo <strong>restore_ssh.sh</strong>:</p>
                 <div class="code-block" style="color: #dcdde1; background: #2d3436;">
                     <pre style="margin:0;">
 #!/bin/sh
-# 1. Define o caminho do root (no seu caso /home/root)
+# 1. Define o caminho do home do root dinamicamente (Ex: /home/root)
 ROOT_HOME=$(eval echo "~root")
 
-# 2. Recria a pasta .ssh na RAM e define permissões
+# 2. Recria o diretório .ssh na RAM e aplica permissões de segurança
 mkdir -p $ROOT_HOME/.ssh
 chmod 700 $ROOT_HOME/.ssh
 
-# 3. Copia a chave do HD para a RAM
+# 3. Restaura a chave autorizada do HD para a RAM (Sistema Ativo)
 cp /mnt/HD/HD_a2/.ssh_backup/authorized_keys $ROOT_HOME/.ssh/
-chmod 600 $ROOT_HOME/.ssh/authorized_keys
-</pre>
+chmod 600 $ROOT_HOME/.ssh/authorized_keys</pre>
                 </div>
                 <div class="code-block" style="margin-top:10px;">
                     <code>chmod +x /mnt/HD/HD_a2/.ssh_backup/restore_ssh.sh</code>
@@ -83,22 +82,41 @@ chmod 600 $ROOT_HOME/.ssh/authorized_keys
         <div class="step-card highlight">
             <div class="step-number">04</div>
             <div class="step-content">
-                <h3>Ativando a Persistência</h3>
-                <p>Linkamos o script ao sistema de inicialização do Entware para execução automática.</p>
+                <h3>Persistência no Boot do NAS</h3>
+                <p>Vinculamos o script ao sistema de inicialização para execução automática.</p>
                 <div class="code-block">
                     <code>ln -s /mnt/HD/HD_a2/.ssh_backup/restore_ssh.sh /opt/etc/init.d/S99restore_ssh</code>
                 </div>
             </div>
         </div>
 
+        <!-- PASSO 5 -->
+        <div class="step-card highlight-blue">
+            <div class="step-number">05</div>
+            <div class="step-content">
+                <h3>Dica de Ouro: Atalho no Proxmox</h3>
+                <p>Crie um comando simples no PVE-01 para desligar o NAS de forma segura (OS 5 Way).</p>
+                <div class="code-block">
+                    <code>nano ~/.bashrc</code>
+                </div>
+                <p>Adicione esta linha ao final do arquivo:</p>
+                <div class="code-block" style="color: #f1f3f5; border: 1px dashed var(--success-green);">
+                    <code>alias desligar-nas='ssh sshd@192.168.0.10 "sh /opt/wd/sbin/send_pending_shutdown.sh -s 0"'</code>
+                </div>
+                <div class="code-block" style="margin-top:10px;">
+                    <code>source ~/.bashrc</code>
+                </div>
+            </div>
+        </div>
+
         <div class="terminal-box">
-            CONEXÃO ESTABELECIDA!<br>
-            <span style="font-size: 0.9rem; opacity: 0.8;">ssh sshd@192.168.0.10 -> Login direto OK</span>
+            SISTEMA PRONTO!<br>
+            <span style="font-size: 0.9rem; opacity: 0.8;">Use o comando "desligar-nas" no PVE para shutdown seguro.</span>
         </div>
 
         <footer>
-            Desenvolvido para automação Proxmox-NAS • 2026<br>
-            Nota: Certifique-se de que o Entware esteja instalado para o Passo 4.
+            Guia de Integração NAS WD & Proxmox • Criado em Jan 2026<br>
+            Obrigado pela correção sobre o método de desligamento do OS 5!
         </footer>
     </div>
 
